@@ -13,7 +13,7 @@ pub fn function() {
     writeln!(writer, "{} {}", width, height).unwrap();
     writeln!(writer, "255").unwrap();
 
-    let mut pixels = vec![[255, 255, 255]; height * width];
+    let mut pixels = vec![[0, 0, 0]; height * width];
 
     let center_x = width / 2;
     let center_y = height / 2;
@@ -25,7 +25,7 @@ pub fn function() {
         for thick in 0..thickness {
             let x = center_x + thick - half_thickness;
             let index = y * width + x;
-            pixels[index] = [0, 0, 0];
+            pixels[index] = [255, 255, 255];
         }
     }
 
@@ -33,9 +33,29 @@ pub fn function() {
         for thick in 0..thickness {
             let y = center_y + thick - half_thickness;
             let index = y * height + x;
-            pixels[index] = [0, 0, 0];
+            pixels[index] = [255, 255, 255];
         }
     }
+
+    let r = 100;
+    let tolerance = 1;
+
+    for y in 0..height {
+        for x in 0..width {
+            let index = y * width + x;
+
+            let dx = (x as i32 - 400).abs();
+            let dy = (y as i32 - 400).abs();
+
+            let distance_squared = dx * dx + dy * dy;
+
+            if distance_squared >= (r * r - tolerance) && distance_squared <= (r * r + tolerance) {
+                pixels[index] = [255, 0, 0];
+            }
+        }
+    }
+
+    println!("Row major size: {}", pixels.len());
 
     for pixel in &pixels {
         writeln!(writer, "{} {} {}", pixel[0], pixel[1], pixel[2]);
