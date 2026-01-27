@@ -2,62 +2,64 @@
 
 use std::io::Write;
 
-pub fn function() {
-    let width = 800;
-    let height = 800;
+const BLACK_PIXEL: [u8; 3] = [0, 0, 0];
+const WHITE_PIXEL: [u8; 3] = [255, 255, 255];
 
-    let file = std::fs::File::create("function.ppm").unwrap();
-    let mut writer = std::io::BufWriter::new(file);
+// Row major btw
+struct Function {
+    row: Vec<[u8; 3]>,
+    width: usize,
+    height: usize,
+}
 
-    writeln!(writer, "P3").unwrap();
-    writeln!(writer, "{} {}", width, height).unwrap();
-    writeln!(writer, "255").unwrap();
+impl Function {
+    fn new(width: usize, height: usize) -> Self {
+        let row = vec![BLACK_PIXEL; width * height];
 
-    let mut pixels = vec![[0, 0, 0]; height * width];
-
-    let center_x = width / 2;
-    let center_y = height / 2;
-
-    let thickness = 5;
-    let half_thickness = thickness / 2;
-
-    for y in 0..height {
-        for thick in 0..thickness {
-            let x = center_x + thick - half_thickness;
-            let index = y * width + x;
-            pixels[index] = [255, 255, 255];
-        }
+        Self { row, width, height }
     }
 
-    for x in 0..width {
-        for thick in 0..thickness {
-            let y = center_y + thick - half_thickness;
-            let index = y * height + x;
-            pixels[index] = [255, 255, 255];
-        }
-    }
+    fn draw_axis(&mut self) {
+        let thickness = 3;
+        let half = thickness / 2;
 
-    let r = 100;
-    let tolerance = 1;
+        let center_x = self.width / 2;
+        let center_y = self.height / 2;
 
-    for y in 0..height {
-        for x in 0..width {
-            let index = y * width + x;
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let y_axis = (x as i32 - center_x as i32).abs() <= half as i32;
+                let x_axis = (y as i32 - center_y as i32).abs() <= half as i32;
 
-            let dx = (x as i32 - 400).abs();
-            let dy = (y as i32 - 400).abs();
-
-            let distance_squared = dx * dx + dy * dy;
-
-            if distance_squared >= (r * r - tolerance) && distance_squared <= (r * r + tolerance) {
-                pixels[index] = [255, 0, 0];
+                if y_axis || x_axis {
+                    self.point(x as i32, y as i32);
+                }
             }
         }
     }
 
-    println!("Row major size: {}", pixels.len());
+    fn point(&mut self, x: i32, y: i32) {
+        let index = y * self.width as i32 + x;
+        self.row[index as usize] = WHITE_PIXEL;
+    }
+}
 
-    for pixel in &pixels {
+fn ppm(function: Function) {
+    let file = std::fs::File::create("function.ppm").unwrap();
+    let mut writer = std::io::BufWriter::new(file);
+
+    writeln!(writer, "P3").unwrap();
+    writeln!(writer, "{} {}", function.width, function.height).unwrap();
+    writeln!(writer, "255").unwrap();
+
+    for pixel in &function.row {
         writeln!(writer, "{} {} {}", pixel[0], pixel[1], pixel[2]);
     }
+}
+
+pub fn function() {
+    let mut function = Function::new(800, 800);
+    function.draw_axis();
+
+    ppm(function);
 }
