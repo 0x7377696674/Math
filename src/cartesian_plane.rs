@@ -38,7 +38,21 @@ impl Function {
         }
     }
 
-    fn draw_line(&mut self, x0: i32, x1: i32, y0: i32, y1: i32) {
+    fn mapping(&self, x0: i32, y0: i32, x1: i32, y1: i32) -> (i32, i32, i32, i32) {
+        let center_x = self.width as i32 / 2;
+        let center_y = self.height as i32 / 2;
+
+        let x0 = x0 + center_x;
+        let y0 = center_y - y0;
+
+        let x1 = x1 + center_x;
+        let y1 = center_y - y1;
+
+        (x0, y0, x1, y1)
+    }
+
+    fn draw_line(&mut self, x0: i32, y0: i32, x1: i32, y1: i32) {
+        let (x0, y0, x1, y1) = self.mapping(x0, y0, x1, y1);
         let dx = x1 - x0;
         let dy = y1 - y0;
 
@@ -80,7 +94,7 @@ fn ppm(function: Function) {
 pub fn function() {
     let mut function = Function::new(800, 800);
     function.draw_axes();
-    function.draw_line(799, 799, 0, 0);
+    function.draw_line(399, 399, -399, -399);
 
     ppm(function);
 }
