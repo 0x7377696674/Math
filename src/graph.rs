@@ -19,7 +19,7 @@ impl Function {
         Self { row, width, height }
     }
 
-    fn draw_axis(&mut self) {
+    fn draw_axes(&mut self) {
         let thickness = 3;
         let half = thickness / 2;
 
@@ -38,9 +38,29 @@ impl Function {
         }
     }
 
+    fn draw_line(&mut self, x0: i32, x1: i32, y0: i32, y1: i32) {
+        let dx = x1 - x0;
+        let dy = y1 - y0;
+
+        let step = if dx > dy { dx } else { dy };
+
+        if step != 0 {
+            let step_x = dx / step;
+            let step_y = dy / step;
+
+            for i in 0..=step.abs() {
+                self.point(x0 + i * step_x, y0 + i * step_y);
+            }
+        }
+    }
+
     fn point(&mut self, x: i32, y: i32) {
-        let index = y * self.width as i32 + x;
-        self.row[index as usize] = WHITE_PIXEL;
+        let index = (y * self.width as i32 + x) as usize;
+        if index < self.width * self.height {
+            self.row[index as usize] = WHITE_PIXEL;
+        } else {
+            println!("index out of bounds: {}", index);
+        }
     }
 }
 
@@ -59,7 +79,8 @@ fn ppm(function: Function) {
 
 pub fn function() {
     let mut function = Function::new(800, 800);
-    function.draw_axis();
+    function.draw_axes();
+    function.draw_line(799, 799, 0, 0);
 
     ppm(function);
 }
