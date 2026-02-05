@@ -6,35 +6,42 @@ use std::fmt;
 pub struct Vector {
     x: i32,
     y: i32,
+    z: i32,
 }
 
 impl Vector {
-    pub fn new(x: i32, y: i32) -> Self {
+    pub fn new(x: i32, y: i32, z: i32) -> Self {
         Self {
             x,
             y,
+            z,
         }
     }
 
     pub fn add(a: Vector, b: Vector) -> Self {
         let x = a.x + b.x;
         let y = a.y + b.y;
+        let z = a.z + b.z;
         Self {
             x,
             y,
+            z,
         }
     }
 
     pub fn multiply(&mut self, scalar: i32) {
         self.x *= scalar;
         self.y *= scalar;
+        self.z *= scalar;
     }
 
-    pub fn combine(c: i32, mut a: Vector, d: i32, mut b: Vector) -> Self {
+    pub fn combine(c: i32, mut a: Vector, d: i32, mut b: Vector, e: i32, mut z: Vector) -> Self {
         a.multiply(c);
         b.multiply(d);
+        z.multiply(e);
 
-        Self::add(a, b)
+        let result = Self::add(a, b);
+        Self::add(result, z)
     }
 }
 
