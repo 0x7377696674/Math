@@ -35,6 +35,14 @@ impl Vector {
         self.z *= scalar;
     }
 
+    pub fn dot(a: Vector, b: Vector) -> i32 {
+        let x = a.x * b.x;
+        let y = a.y * b.y;
+        let z = a.z * b.z;
+
+        x + y + z
+    }
+
     pub fn combine(c: i32, mut a: Vector, d: i32, mut b: Vector, e: i32, mut z: Vector) -> Self {
         a.multiply(c);
         b.multiply(d);
