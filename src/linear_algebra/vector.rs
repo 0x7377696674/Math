@@ -58,3 +58,17 @@ impl fmt::Display for Vector {
         write!(f, "Vector {{ x: {}, y: {} }}", self.x, self.y)
     }
 }
+
+use std::ops::Add;
+
+impl Add for Vector {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
+    }
+}
