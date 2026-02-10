@@ -18,17 +18,6 @@ impl Vector {
         }
     }
 
-    pub fn add(a: Vector, b: Vector) -> Self {
-        let x = a.x + b.x;
-        let y = a.y + b.y;
-        let z = a.z + b.z;
-        Self {
-            x,
-            y,
-            z,
-        }
-    }
-
     pub fn multiply(&mut self, scalar: i32) {
         self.x *= scalar;
         self.y *= scalar;
