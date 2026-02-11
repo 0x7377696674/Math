@@ -24,15 +24,21 @@ impl Vector {
         self.z *= scalar;
     }
 
-    pub fn dot(a: Vector, b: Vector) -> i32 {
-        let x = a.x * b.x;
-        let y = a.y * b.y;
-        let z = a.z * b.z;
+    pub fn dot(&self, other: &Vector) -> i32 {
+        let x = self.x * other.x;
+        let y = self.y * other.y;
+        let z = self.z * other.z;
 
         x + y + z
     }
 
-    pub fn combine(c: i32, mut a: Vector, d: i32, mut b: Vector, e: i32, mut z: Vector) -> Self {
+    pub fn length(&self) -> String {
+        let dot = Self::dot(self, self);
+
+        format!("||v|| = \u{221A}{}", dot)
+    }
+
+    pub fn linear_combination(c: i32, mut a: Vector, d: i32, mut b: Vector, e: i32, mut z: Vector) -> Self {
         a.multiply(c);
         b.multiply(d);
         z.multiply(e);
@@ -53,11 +59,25 @@ use std::ops::Add;
 impl Add for Vector {
     type Output = Self;
 
-    fn add(self, other: Self) -> Self {
+    fn add(self, rhs: Self) -> Self::Output {
         Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+        }
+    }
+}
+
+use std::ops::Mul;
+
+impl Mul for Vector {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x * rhs.x,
+            y: self.y * rhs.y,
+            z: self.z * rhs.z,
         }
     }
 }
