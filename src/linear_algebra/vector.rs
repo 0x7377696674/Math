@@ -18,7 +18,7 @@ impl Vector {
         }
     }
 
-    pub fn multiply(&mut self, scalar: i32) {
+    pub fn scale(&mut self, scalar: i32) {
         self.x *= scalar;
         self.y *= scalar;
         self.z *= scalar;
@@ -38,13 +38,12 @@ impl Vector {
         format!("||v|| = \u{221A}{}", dot)
     }
 
-    pub fn linear_combination(c: i32, mut a: Vector, d: i32, mut b: Vector, e: i32, mut z: Vector) -> Self {
-        a.multiply(c);
-        b.multiply(d);
-        z.multiply(e);
+    pub fn linear_combination(c: i32, mut x: Vector, d: i32, mut y: Vector, e: i32, mut z: Vector) -> Self {
+        x.scale(c);
+        y.scale(d);
+        z.scale(e);
 
-        let result = Self::add(a, b);
-        Self::add(result, z)
+        x + y + z
     }
 }
 
