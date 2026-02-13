@@ -40,6 +40,13 @@ impl Vector {
         }
     }
 
+    pub fn cosine(&self, other: &Self) -> f64 {
+        let x = self.unit();
+        let y = other.unit();
+
+        x.dot(&y)
+    }
+
     pub fn scale(&mut self, scalar: f64) {
         self.x *= scalar;
         self.y *= scalar;
