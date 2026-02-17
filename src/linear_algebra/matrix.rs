@@ -1,16 +1,17 @@
 // matrix
 
-use std::ops::Mul;
+use std::ops::{Add, AddAssign, Mul, Div};
+use std::fmt::{Debug, Display};
 
 #[derive(Debug)]
-pub struct Matrix {
-    pub vector: Vec<i32>,
+pub struct Matrix<T> {
+    pub vector: Vec<T>,
     pub row: u32,
     pub column: u32,
 }
 
-impl Matrix {
-    pub fn from(vector: Vec<i32>, row: u32, column: u32) -> Self {
+impl<T> Matrix<T> {
+    pub fn from(vector: Vec<T>, row: u32, column: u32) -> Self {
         Self {
             vector,
             row,
@@ -22,8 +23,10 @@ impl Matrix {
         self.row * self.column
     }
 
-    pub fn get(&self, x: u32, y: u32) -> i32 {
-
+    pub fn get(&self, x: u32, y: u32) -> T 
+    where 
+        T: Copy,
+    {
         // Row Major Formula
         // Index = rows * num_of_columns + columns
         let index = x as i32 * self.column as i32 + y as i32;
@@ -31,14 +34,43 @@ impl Matrix {
         self.vector[index as usize]
     }
 
-    pub fn set(&mut self, x: u32, y: u32, new_value: i32) {
+    pub fn set(&mut self, x: u32, y: u32, new_value: T)
+    {
         let index = x as i32 * self.column as i32 + y as i32;
 
         self.vector[index as usize] = new_value;
     }
+
+    pub fn identity(mut a: Matrix<T>)
+    // This doesn't work yet!
+    where 
+        T: Copy + Display + Debug + Mul<Output = T>,
+    {
+        let row = 0;
+        let column = 0;
+
+        let pivot = a.get(row, column);
+        println!("Pivot in ({row}{column}): {pivot}");
+
+        Self::scale(&mut a, row, pivot);
+        println!("New A: {a:#?}");
+    }
+
+    pub fn scale(a: &mut Matrix<T>, row: u32, pivot: T)
+    where 
+        T: Copy + Mul<Output = T>,
+    {
+        for y in 0..a.column {
+            let value = a.get(row, y);
+            a.set(row, y, value * pivot);
+        }
+    }
 }
 
-impl Mul for Matrix {
+impl<T> Mul for Matrix<T>
+where 
+    T: Mul<Output = T> + Add<Output = T> + Default + Copy + Debug + AddAssign,
+{
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
@@ -51,7 +83,7 @@ impl Mul for Matrix {
 
         for a in 0..self.row {
             for b in 0..rhs.column {
-                let mut value = 0;
+                let mut value = T::default();
 
                 for z in 0..self.column {
                     let left = self.get(a, z);
