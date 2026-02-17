@@ -4,9 +4,9 @@ use std::ops::Mul;
 
 #[derive(Debug)]
 pub struct Matrix {
-    vector: Vec<i32>,
-    row: u32,
-    column: u32,
+    pub vector: Vec<i32>,
+    pub row: u32,
+    pub column: u32,
 }
 
 impl Matrix {
@@ -29,6 +29,12 @@ impl Matrix {
         let index = x as i32 * self.column as i32 + y as i32;
 
         self.vector[index as usize]
+    }
+
+    pub fn set(&mut self, x: u32, y: u32, new_value: i32) {
+        let index = x as i32 * self.column as i32 + y as i32;
+
+        self.vector[index as usize] = new_value;
     }
 }
 
