@@ -1,76 +1,128 @@
 // matrix
 
-use std::ops::{Add, AddAssign, Mul, Div};
-use std::fmt::{Debug, Display};
+use std::ops::Mul;
 
 #[derive(Debug)]
-pub struct Matrix<T> {
-    pub vector: Vec<T>,
-    pub row: u32,
-    pub column: u32,
+pub struct Matrix {
+    data: Vec<f32>,
+    row: usize,
+    column: usize,
 }
 
-impl<T> Matrix<T> {
-    pub fn from(vector: Vec<T>, row: u32, column: u32) -> Self {
+impl Matrix {
+    pub fn from(data: Vec<f32>, row: usize, column: usize) -> Self {
         Self {
-            vector,
+            data,
             row,
             column,
         }
     }
 
-    pub fn size(&self) -> u32 {
+    pub fn size(&self) -> usize {
         self.row * self.column
     }
 
-    pub fn get(&self, x: u32, y: u32) -> T 
-    where 
-        T: Copy,
-    {
+    pub fn get(&self, x: usize, y: usize) -> f32 {
+
         // Row Major Formula
         // Index = rows * num_of_columns + columns
-        let index = x as i32 * self.column as i32 + y as i32;
+        let index = x * self.column + y;
 
-        self.vector[index as usize]
+        self.data[index]
     }
 
-    pub fn set(&mut self, x: u32, y: u32, new_value: T)
-    {
-        let index = x as i32 * self.column as i32 + y as i32;
+    pub fn set(&mut self, x: usize, y: usize, new_value: f32) {
+        let index = x * self.column + y;
 
-        self.vector[index as usize] = new_value;
+        self.data[index] = new_value;
     }
 
-    pub fn identity(mut a: Matrix<T>)
-    // This doesn't work yet!
-    where 
-        T: Copy + Display + Debug + Mul<Output = T>,
-    {
-        let row = 0;
-        let column = 0;
+    pub fn row_scale(&self, row: usize, scalar: f32) -> Vec<f32> {
+        let mut vector = Vec::new();
 
-        let pivot = a.get(row, column);
-        println!("Pivot in ({row}{column}): {pivot}");
-
-        Self::scale(&mut a, row, pivot);
-        println!("New A: {a:#?}");
-    }
-
-    pub fn scale(a: &mut Matrix<T>, row: u32, pivot: T)
-    where 
-        T: Copy + Mul<Output = T>,
-    {
-        for y in 0..a.column {
-            let value = a.get(row, y);
-            a.set(row, y, value * pivot);
+        for cols in 0..self.column {
+            let value = self.get(row, cols);
+            vector.push(value * scalar);
         }
+
+        vector
+    }
+
+    pub fn gauss(&mut self) {
+        for current_column in 0..self.column {
+            let current_row = 0;
+
+            if (current_row + 1) * (current_column + 1) == self.size() {
+                break;
+            }
+
+            // Get the highest value in the column
+            let mut highest_value = self.get(current_column, current_row);
+            let mut pivot_row = current_row;
+
+            // Loops to find the row with the highest column value
+            for r in 0..self.row {
+                let value = self.get(r, current_column);
+
+                if value > highest_value {
+                    highest_value = value;
+                    pivot_row = r;
+                }
+            }
+
+            // If everything goes fine, I can swap current row with the row with highest column value
+            self.row_swap(current_row, pivot_row);
+
+            // Now, I should check if pivot is 1, if isn't I should scale the whole row by 1 / pivot
+            let pivot = self.get(current_row, current_column); 
+
+            // Here pivot is turned into 1
+            if self.get(current_row, current_column) != 1.0 {
+                let new_row = self.row_scale(current_row, 1.0 / pivot);
+                self.row_overwrite(current_row, new_row);
+            }
+            dbg!(&self);
+        }
+    }
+
+    pub fn row_add(&mut self, row: usize, other: Vec<f32>) {
+        for col in 0..self.column {
+            let self_row = self.get(row, col);
+            let other = other[col];
+
+            let new_value = self_row + other;
+
+            self.set(row, col, new_value);
+        }
+    }
+
+    pub fn row_swap(&mut self, a: usize, b: usize) {
+        let row_a = self.row(a);
+        let row_b = self.row(b);
+
+        self.row_overwrite(a, row_b);
+        self.row_overwrite(b, row_a);
+    } 
+
+    pub fn row_overwrite(&mut self, row: usize, new_row: Vec<f32>) {
+        for i in 0..self.column {
+            self.set(row, i, new_row[i]);
+        }
+    }
+
+    pub fn row(&self, x: usize) -> Vec<f32> {
+        let mut n = Vec::new();
+
+        for y in 0..self.column {
+            let value = self.get(x, y);
+            n.push(value);
+        }
+
+        n
     }
 }
 
-impl<T> Mul for Matrix<T>
-where 
-    T: Mul<Output = T> + Add<Output = T> + Default + Copy + Debug + AddAssign,
-{
+impl Mul for Matrix {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
@@ -79,11 +131,9 @@ where
 
         let mut vector = Vec::new();
 
-        dbg!(self.row, rhs.column, self.column);
-
         for a in 0..self.row {
             for b in 0..rhs.column {
-                let mut value = T::default();
+                let mut value = 0.0;
 
                 for z in 0..self.column {
                     let left = self.get(a, z);
