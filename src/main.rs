@@ -1,16 +1,14 @@
 //main
+//
+#![allow(non_snake_case)]
 
 use math::prelude::*;
 
 fn main() {
-    let x = Vector::new(1, 0, 3);
-    let y = Vector::new(1, 2, 1);
-    let z = Vector::new(2, 3, -1);
+    let data = vec![2.0, 1.0, 3.0, 4.0, 3.0, 8.0];
+    let row = 2;
+    let column = 3;
+    let mut A = Matrix::from(data, row, column);
 
-    let c = 1;
-    let d = 4;
-    let e = -2;
-
-    let result = Vector::combine(c, x, d, y, e, z);
-    dbg!(result);
+    A.reduce();
 }

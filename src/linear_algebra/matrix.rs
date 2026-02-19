@@ -1,18 +1,19 @@
 // matrix
 
+use std::env::current_exe;
 use std::ops::Mul;
 
 #[derive(Debug)]
 pub struct Matrix {
-    data: Vec<f32>,
+    vector: Vec<f32>,
     row: usize,
     column: usize,
 }
 
 impl Matrix {
-    pub fn from(data: Vec<f32>, row: usize, column: usize) -> Self {
+    pub fn from(vector: Vec<f32>, row: usize, column: usize) -> Self {
         Self {
-            data,
+            vector,
             row,
             column,
         }
@@ -28,13 +29,13 @@ impl Matrix {
         // Index = rows * num_of_columns + columns
         let index = x * self.column + y;
 
-        self.data[index]
+        self.vector[index]
     }
 
     pub fn set(&mut self, x: usize, y: usize, new_value: f32) {
         let index = x * self.column + y;
 
-        self.data[index] = new_value;
+        self.vector[index] = new_value;
     }
 
     pub fn row_scale(&self, row: usize, scalar: f32) -> Vec<f32> {
@@ -48,20 +49,19 @@ impl Matrix {
         vector
     }
 
-    pub fn gauss(&mut self) {
-        for current_column in 0..self.column {
-            let current_row = 0;
+    pub fn upper_triangular(&mut self) {
+        self.print();
 
-            if (current_row + 1) * (current_column + 1) == self.size() {
-                break;
-            }
+        for i in 0..self.row {
+            let current_row = i;
+            let current_column = i;
 
-            // Get the highest value in the column
+            // Get the highest value in current column
             let mut highest_value = self.get(current_column, current_row);
             let mut pivot_row = current_row;
 
-            // Loops to find the row with the highest column value
-            for r in 0..self.row {
+            // Gets the row with the highest value in current column
+            for r in current_row+1..self.row {
                 let value = self.get(r, current_column);
 
                 if value > highest_value {
@@ -70,19 +70,40 @@ impl Matrix {
                 }
             }
 
-            // If everything goes fine, I can swap current row with the row with highest column value
+            // The row with highest value is swapped to the top
             self.row_swap(current_row, pivot_row);
+            self.print();
 
-            // Now, I should check if pivot is 1, if isn't I should scale the whole row by 1 / pivot
+            // Get pivot value for normalizing later
             let pivot = self.get(current_row, current_column); 
 
-            // Here pivot is turned into 1
+            // Normalize the pivot and also its row
             if self.get(current_row, current_column) != 1.0 {
                 let new_row = self.row_scale(current_row, 1.0 / pivot);
                 self.row_overwrite(current_row, new_row);
             }
-            dbg!(&self);
+            self.print();
+
+            // Here current_row is scaled to get zeros below the current pivot
+            for row in current_row + 1..self.row {
+                let factor = self.get(row, current_column);
+                let scaled = self.row_scale(current_row, -factor);
+
+                self.row_add(row, scaled);
+            }
+            self.print();
         }
+    }
+    
+    pub fn augment(&mut self, b: Vec<f32>) {
+        let mut new_vector = Vec::new();
+        for(i, chunk) in self.vector.chunks(self.column).enumerate() {
+            new_vector.extend_from_slice(chunk);
+            new_vector.push(b[i]);
+        }
+
+        self.vector = new_vector;
+        self.column += 1;
     }
 
     pub fn row_add(&mut self, row: usize, other: Vec<f32>) {
@@ -94,6 +115,10 @@ impl Matrix {
 
             self.set(row, col, new_value);
         }
+    }
+
+    pub fn print(&self) {
+        println!("{}", self);
     }
 
     pub fn row_swap(&mut self, a: usize, b: usize) {
@@ -148,5 +173,19 @@ impl Mul for Matrix {
         } 
 
         Self::from(vector, row, column)
+    }
+}
+
+use std::fmt;
+
+impl fmt::Display for Matrix {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (i, val) in self.vector.iter().enumerate() {
+            write!(f, "{:.2} ", val)?;
+            if (i + 1) % self.column == 0 {
+                writeln!(f)?;
+            }
+        }
+        Ok(())
     }
 }
