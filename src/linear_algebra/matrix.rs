@@ -50,7 +50,6 @@ impl Matrix {
     }
 
     pub fn upper_triangular(&mut self) {
-        self.print();
 
         for i in 0..self.row {
             let current_row = i;
@@ -72,7 +71,6 @@ impl Matrix {
 
             // The row with highest value is swapped to the top
             self.row_swap(current_row, pivot_row);
-            self.print();
 
             // Get pivot value for normalizing later
             let pivot = self.get(current_row, current_column); 
@@ -82,7 +80,6 @@ impl Matrix {
                 let new_row = self.row_scale(current_row, 1.0 / pivot);
                 self.row_overwrite(current_row, new_row);
             }
-            self.print();
 
             // Here current_row is scaled to get zeros below the current pivot
             for row in current_row + 1..self.row {
@@ -91,8 +88,21 @@ impl Matrix {
 
                 self.row_add(row, scaled);
             }
-            self.print();
         }
+        self.print();
+    }
+
+    pub fn lower_triangular(&mut self) {
+        for current_column in (0..self.column).rev() {
+            let current_row = current_column;
+            for row in (0..current_row).rev() {
+                let target = self.get(row, current_column);
+                let pivot_row = self.row_scale(current_row, -target);
+
+                self.row_add(row, pivot_row);
+            }
+        }
+        self.print();
     }
     
     pub fn augment(&mut self, b: Vec<f32>) {
