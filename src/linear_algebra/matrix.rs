@@ -1,6 +1,5 @@
 // matrix
 
-use std::env::current_exe;
 use std::ops::Mul;
 
 #[derive(Debug)]
@@ -49,6 +48,9 @@ impl Matrix {
         vector
     }
 
+    pub fn scale(&mut self) {
+    }
+
     pub fn upper_triangular(&mut self) {
 
         for i in 0..self.row {
@@ -56,7 +58,7 @@ impl Matrix {
             let current_column = i;
 
             // Get the highest value in current column
-            let mut highest_value = self.get(current_column, current_row);
+            let mut highest_value = self.get(current_row, current_column);
             let mut pivot_row = current_row;
 
             // Gets the row with the highest value in current column
@@ -75,6 +77,10 @@ impl Matrix {
             // Get pivot value for normalizing later
             let pivot = self.get(current_row, current_column); 
 
+            if pivot < f32::EPSILON {
+                println!("Matrix is singular, non-invertible!");
+            }
+
             // Normalize the pivot and also its row
             if self.get(current_row, current_column) != 1.0 {
                 let new_row = self.row_scale(current_row, 1.0 / pivot);
@@ -89,11 +95,10 @@ impl Matrix {
                 self.row_add(row, scaled);
             }
         }
-        self.print();
     }
 
     pub fn lower_triangular(&mut self) {
-        for current_column in (0..self.column).rev() {
+        for current_column in (0..3).rev() {
             let current_row = current_column;
             for row in (0..current_row).rev() {
                 let target = self.get(row, current_column);
@@ -102,18 +107,46 @@ impl Matrix {
                 self.row_add(row, pivot_row);
             }
         }
-        self.print();
+    }
+
+    pub fn inverse(&mut self) {
+    }
+
+    pub fn identity(&self) -> Vec<f32> {
+        let mut vector = Vec::new();
+        for i in 0..self.row {
+            for j in 0..self.column {
+                if i == j {
+                    vector.push(1.0);
+                } else {
+                    vector.push(0.0);
+                }
+            }
+        }
+
+        vector
     }
     
-    pub fn augment(&mut self, b: Vec<f32>) {
+    pub fn inverse_augment(&mut self) {
         let mut new_vector = Vec::new();
-        for(i, chunk) in self.vector.chunks(self.column).enumerate() {
-            new_vector.extend_from_slice(chunk);
-            new_vector.push(b[i]);
+
+        let identity = self.identity();
+
+        for row in 0..self.row {
+            for i in 0..self.column {
+                let index = row * self.column + i;
+                new_vector.push(self.vector[index]);
+            }
+
+            for j in 0..self.column {
+                let index = row * self.column + j;
+                new_vector.push(identity[index]);
+            }
         }
 
         self.vector = new_vector;
-        self.column += 1;
+
+        self.column += self.column;
     }
 
     pub fn row_add(&mut self, row: usize, other: Vec<f32>) {
@@ -175,7 +208,6 @@ impl Mul for Matrix {
                     let right = rhs.get(z, b);
 
                     value += left * right;
-                    dbg!(value);
                 }
 
                 vector.push(value);
@@ -186,7 +218,7 @@ impl Mul for Matrix {
     }
 }
 
-use std::fmt;
+use std::{f32, fmt};
 
 impl fmt::Display for Matrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
