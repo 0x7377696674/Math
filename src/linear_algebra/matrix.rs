@@ -97,8 +97,8 @@ impl Matrix {
         }
     }
 
-    pub fn lower_triangular(&mut self) {
-        for current_column in (0..3).rev() {
+    pub fn lower_triangular(&mut self, base_column_size: usize) {
+        for current_column in (0..base_column_size).rev() {
             let current_row = current_column;
             for row in (0..current_row).rev() {
                 let target = self.get(row, current_column);
@@ -110,6 +110,28 @@ impl Matrix {
     }
 
     pub fn inverse(&mut self) {
+        let base_column = self.inverse_augment();
+        self.upper_triangular();
+        self.lower_triangular(base_column);
+        self.extract_right(base_column, base_column);
+        self.print();
+    }
+
+    pub fn extract_right(&mut self, base_column: usize, column: usize) {
+        let mut new_vector = Vec::new();
+
+        for i in 0..self.row {
+            for j in 0..self.column {
+                if j >= column {
+                    let index = i * self.column + j;
+                    new_vector.push(self.vector[index]);
+                }
+            }
+        }
+
+        self.vector = new_vector;
+
+        self.column = base_column;
     }
 
     pub fn identity(&self) -> Vec<f32> {
@@ -127,10 +149,12 @@ impl Matrix {
         vector
     }
     
-    pub fn inverse_augment(&mut self) {
+    pub fn inverse_augment(&mut self) -> usize {
         let mut new_vector = Vec::new();
 
         let identity = self.identity();
+
+        let original_size = self.column;
 
         for row in 0..self.row {
             for i in 0..self.column {
@@ -147,6 +171,8 @@ impl Matrix {
         self.vector = new_vector;
 
         self.column += self.column;
+
+        original_size
     }
 
     pub fn row_add(&mut self, row: usize, other: Vec<f32>) {
